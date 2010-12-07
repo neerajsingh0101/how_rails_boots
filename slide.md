@@ -15,6 +15,7 @@ Rails::Server.new
 require 'config/application'
 
 #config/application.rb
+require "boot"
 require "rails"
 
 %w(
@@ -161,7 +162,74 @@ end
   end
 end
 
+
+!SLIDE
+Bundler.require(:default, Rails.env) if defined?(Bundler)
+
+!SLIDE
+module AdminData
+  class Engine < Rails::Engine
+  end
+end
+
+
+
 !SLIDE
 server.start
 
+    def start
+      puts "=> Booting #{ActiveSupport::Inflector.demodulize(server)}"
+      puts "=> Rails #{Rails.version} application starting in #{Rails.env} on http://#{options[:Host]}:#{options[:Port]}"
+      puts "=> Call with -d to detach" unless options[:daemonize]
+      trap(:INT) { exit }
+      puts "=> Ctrl-C to shutdown server" unless options[:daemonize]
+
+      #Create required tmp directories if not found
+      %w(cache pids sessions sockets).each do |dir_to_make|
+        FileUtils.mkdir_p(Rails.root.join('tmp', dir_to_make))
+      end
+
+      super
+    end
+
+
+#config.ru
+require ::File.expand_path('../config/environment',  __FILE__)
+#run THowRailsBoots::Application
+
+#environment.rb
+# Load the rails application
+require File.expand_path('../application', __FILE__)
+
+# Initialize the rails application
+THowRailsBoots::Application.initialize!
+
+
+require File.expand_path('../boot', __FILE__)
+require 'rails/all'
+Bundler.require(:default, Rails.env) if defined?(Bundler)
+
+module THowRailsBoots
+  class Application < Rails::Application
+    config.action_view.javascript_expansions[:defaults] = %w()
+    config.encoding = "utf-8"
+    config.filter_parameters += [:password]
+  end
+end
+
+
+# rails/application.rb
+class Application < Engine
+  class << self
+    def inherited(base)
+      raise "You cannot have more than one Rails::Application" if Rails.application
+      super
+      Rails.application = base.instance
+      Rails.application.add_lib_to_load_path!
+      ActiveSupport.run_load_hooks(:before_configuration, base.instance)
+    end
+  end
+
+!SLIDE
+Notice ActiveSupport.run_load_hooks
 
