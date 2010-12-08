@@ -225,20 +225,24 @@
 
 
 
-!SLIDE
-Bundler.require(:default, Rails.env) if defined?(Bundler)
+!SLIDE smaller
+
+    @@@ruby
+    Bundler.require(:default, Rails.env) if defined?(Bundler)
+
+!SLIDE smaller
+    @@@ ruby
+    module AdminData
+      class Engine < Rails::Engine
+      end
+    end
 
 !SLIDE
-module AdminData
-  class Engine < Rails::Engine
-  end
-end
+    @@@ruby
+    server.start
 
-
-
-!SLIDE
-server.start
-
+!SLIDE smaller
+    @@@ruby
     def start
       puts "=> Booting #{ActiveSupport::Inflector.demodulize(server)}"
       puts "=> Rails #{Rails.version} application starting in #{Rails.env} on http://#{options[:Host]}:#{options[:Port]}"
@@ -254,44 +258,35 @@ server.start
       super
     end
 
+!SLIDE smaller
+    @@@ruby
+    #config.ru
+    require ::File.expand_path('../config/environment',  __FILE__)
+    run THowRailsBoots::Application
 
-#config.ru
-require ::File.expand_path('../config/environment',  __FILE__)
-#run THowRailsBoots::Application
+!SLIDE smaller
+    @@@ruby
+    #environment.rb
+    # Load the rails application
+    require File.expand_path('../application', __FILE__)
 
-#environment.rb
-# Load the rails application
-require File.expand_path('../application', __FILE__)
-
-# Initialize the rails application
-THowRailsBoots::Application.initialize!
-
-
-require File.expand_path('../boot', __FILE__)
-require 'rails/all'
-Bundler.require(:default, Rails.env) if defined?(Bundler)
-
-module THowRailsBoots
-  class Application < Rails::Application
-    config.action_view.javascript_expansions[:defaults] = %w()
-    config.encoding = "utf-8"
-    config.filter_parameters += [:password]
-  end
-end
+    # Initialize the rails application
+    THowRailsBoots::Application.initialize!
 
 
-# rails/application.rb
-class Application < Engine
-  class << self
-    def inherited(base)
-      raise "You cannot have more than one Rails::Application" if Rails.application
-      super
-      Rails.application = base.instance
-      Rails.application.add_lib_to_load_path!
-      ActiveSupport.run_load_hooks(:before_configuration, base.instance)
-    end
-  end
+!SLIDE smaller
+    @@@ruby
+    # rails/application.rb
+    class Application < Engine
+      class << self
+        def inherited(base)
+          raise "You cannot have more than one Rails::Application" if Rails.application
+          super
+          Rails.application = base.instance
+          Rails.application.add_lib_to_load_path!
+          ActiveSupport.run_load_hooks(:before_configuration, base.instance)
+        end
+      end
 
 !SLIDE
-Notice ActiveSupport.run_load_hooks
-
+#Notice ActiveSupport.run_load_hooks#
