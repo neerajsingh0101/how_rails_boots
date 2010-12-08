@@ -1,50 +1,105 @@
-# ~/railtie/lib/rails/commands.rb
-Rails::Server.new
+!SLIDE
+    @@@ruby
+    $rails server
+
+!SLIDE smaller
+    @@@ruby
+    #~script/rails
+
+    #!/usr/bin/env ruby
+    # This command will automatically be run when you run "rails" with Rails 3 gems installed from the root of your application.
+
+    APP_PATH = File.expand_path('../../config/application',  __FILE__)
+    require File.expand_path('../../config/boot',  __FILE__)
+    require 'rails/commands'
+
+!SLIDE smaller
+    @@@ruby
+    #~/rails/commands.rb
+
+    when 'server'
+      require 'rails/commands/server'
+      Rails::Server.new.tap { |server|
+        # We need to require application after the server sets environment,
+        # otherwise the --environment option given to the server won't propagate.
+        require APP_PATH
+        Dir.chdir(Rails.application.root)
+        server.start
+      }
+
+!SLIDE smaller
+    @@@ruby
+    #~/rails/commands/server.rb
+    module Rails
+      class Server < ::Rack::Server
+        class Options
+          def parse!(args)
+          end
+        end
+        def initialize(*)
+          super
+          set_environment
+        end
+      end
+    end
+
+
+!SLIDE smaller
+    @@@ ruby
+    # ~/railtie/lib/rails/commands.rb
+    Rails::Server.new
 
     def initialize(*)
       super
       set_environment
     end
 
-
-   def set_environment
+    def set_environment
       ENV["RAILS_ENV"] ||= options[:environment]
     end
 
-# ~/railtie/lib/rails/commands.rb
-require 'config/application'
+!SLIDE
+    @@@ruby
+    # ~/railtie/lib/rails/commands.rb
+    require 'config/application'
 
-#config/application.rb
-require "boot"
-require "rails"
+!SLIDE
+    @@@ruby
+    #config/application.rb
+    require "boot"
+    require "rails"
 
-%w(
-  active_record
-  action_controller
-  action_mailer
-  active_resource
-  rails/test_unit
-).each do |framework|
-  begin
-    require "#{framework}/railtie"
-  rescue LoadError
-  end
-end
+!SLIDE
+    @@@ruby
+    %w(
+      active_record
+      action_controller
+      action_mailer
+      active_resource
+      rails/test_unit
+    ).each do |framework|
+      begin
+        require "#{framework}/railtie"
+      rescue LoadError
+      end
+    end
 
-#~/active_record/railtie.rb
-module ActiveRecord
-  # = Active Record Railtie
-  class Railtie < Rails::Railtie
-    config.active_record = ActiveSupport::OrderedOptions.new
+!SLIDE small
+    @@@ruby
+    #~/active_record/railtie.rb
+    module ActiveRecord
+      # = Active Record Railtie
+      class Railtie < Rails::Railtie
+        config.active_record = ActiveSupport::OrderedOptions.new
 
-    config.app_generators.orm :active_record, :migration => true,
-                                              :timestamps => true
+        config.app_generators.orm :active_record, :migration => true,
+                                                  :timestamps => true
 
-    config.app_middleware.insert_after "::ActionDispatch::Callbacks",
-      "ActiveRecord::QueryCache"
+        config.app_middleware.insert_after "::ActionDispatch::Callbacks",
+          "ActiveRecord::QueryCache"
 
-    config.app_middleware.insert_after "::ActionDispatch::Callbacks",
-      "ActiveRecord::ConnectionAdapters::ConnectionManagement"
+        config.app_middleware.insert_after "::ActionDispatch::Callbacks",
+          "ActiveRecord::ConnectionAdapters::ConnectionManagement"
 
     rake_tasks do
       load "active_record/railties/databases.rake"
@@ -56,7 +111,8 @@ module ActiveRecord
       ActiveRecord::Base
     end
 
-!SLIDE
+!SLIDE smaller
+    @@@ruby
     initializer "active_record.initialize_timezone" do
       ActiveSupport.on_load(:active_record) do
         self.time_zone_aware_attributes = true
@@ -64,12 +120,14 @@ module ActiveRecord
       end
     end
 
-!SLIDE
+!SLIDE smaller
+    @@@ ruby
     initializer "active_record.logger" do
       ActiveSupport.on_load(:active_record) { self.logger ||= ::Rails.logger }
     end
 
-!SLIDE
+!SLIDE smaller
+    @@@ ruby
     initializer "active_record.set_configs" do |app|
       ActiveSupport.on_load(:active_record) do
         app.config.active_record.each do |k,v|
@@ -78,7 +136,8 @@ module ActiveRecord
       end
     end
 
-!SLIDE
+!SLIDE smaller
+    @@@ruby
     # This sets the database configuration from Configuration#database_configuration
     # and then establishes the connection.
     initializer "active_record.initialize_database" do |app|
@@ -88,7 +147,8 @@ module ActiveRecord
       end
     end
 
-!SLIDE
+!SLIDE smaller
+    @@@ruby
     # Expose database runtime to controller for logging.
     initializer "active_record.log_runtime" do |app|
       require "active_record/railties/controller_runtime"
@@ -97,7 +157,8 @@ module ActiveRecord
       end
     end
 
-!SLIDE
+!SLIDE smaller
+    @@@ruby
     initializer "active_record.set_dispatch_hooks", :before => :set_clear_dependencies_hook do |app|
       unless app.config.cache_classes
         ActiveSupport.on_load(:active_record) do
@@ -108,7 +169,8 @@ module ActiveRecord
       end
     end
 
-!SLIDE
+!SLIDE smaller
+    @@@ruby
     config.after_initialize do
       ActiveSupport.on_load(:active_record) do
         instantiate_observers
@@ -118,11 +180,10 @@ module ActiveRecord
         end
       end
     end
-  end
-end
 
 
-!SLIDE
+!SLIDE smaller
+    @@@ruby
     initializer "action_controller.logger" do
       ActiveSupport.on_load(:action_controller) { self.logger ||= Rails.logger }
     end
@@ -144,23 +205,24 @@ end
       options.asset_path           ||= nil
       options.asset_host           ||= nil
 
-!SLIDE
-      ActiveSupport.on_load(:action_controller) do
-        include app.routes.mounted_helpers
-        extend ::AbstractController::Railties::RoutesHelpers.with(app.routes)
-        extend ::ActionController::Railties::Paths.with(app)
-        options.each { |k,v| send("#{k}=", v) }
-      end
+!SLIDE smaller
+    @@@ruby
+    ActiveSupport.on_load(:action_controller) do
+      include app.routes.mounted_helpers
+      extend ::AbstractController::Railties::RoutesHelpers.with(app.routes)
+      extend ::ActionController::Railties::Paths.with(app)
+      options.each { |k,v| send("#{k}=", v) }
     end
 
-!SLIDE
+!SLIDE smaller
+    @@@ruby
     initializer "action_controller.compile_config_methods" do
       ActiveSupport.on_load(:action_controller) do
         config.compile_methods! if config.respond_to?(:compile_methods!)
       end
     end
-  end
-end
+
+
 
 
 !SLIDE
