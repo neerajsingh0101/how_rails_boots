@@ -4,6 +4,13 @@
 * ##Invalid application name 2a. Please give a name which does not start with numbers##
 
 !SLIDE
+##A syntax error in erb is not detected even if you boot your app in production##
+    @@@ruby
+    #~/views/users.index.html.erb
+    <% auto_link('www.google.com) %>
+
+
+!SLIDE
 
 ##config/environment.rb has changed from Rails2##
 ##Also there is a new file config/application.rb##
