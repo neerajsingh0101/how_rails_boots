@@ -1,7 +1,12 @@
-
 !SLIDE bullets smaller incremental
-*    $ rails new 2a
-*    Invalid application name 2a. Please give a name which does not start with numbers.
+
+* ##$ rails new 2a##
+* ##Invalid application name 2a. Please give a name which does not start with numbers##
+
+!SLIDE
+
+##config/environment.rb has changed from Rails2##
+##Also there is a new file config/application.rb##
 
 !SLIDE smaller
     @@@ruby

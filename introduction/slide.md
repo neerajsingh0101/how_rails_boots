@@ -1,5 +1,5 @@
 !SLIDE title-slide
-# Callbacks in Rails3 #
+# How Rails boots #
 
 !SLIDE center
 # About Me #
