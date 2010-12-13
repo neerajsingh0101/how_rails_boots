@@ -58,6 +58,28 @@
       ENV["RAILS_ENV"] ||= options[:environment]
     end
 
+!SLIDE smaller
+    @@@ruby
+    def default_options
+      super.merge({
+        :Port        => 3000,
+        :environment => (ENV['RAILS_ENV'] || "development").dup,
+        :daemonize   => false,
+        :debugger    => false,
+        :pid         => File.expand_path("tmp/pids/server.pid"),
+        :config      => File.expand_path("config.ru")
+      })
+    end
+
+!SLIDE smaller
+    @@@ruby
+    def middleware
+      middlewares = []
+      middlewares << [Rails::Rack::LogTailer, log_path] unless options[:daemonize]
+      middlewares << [Rails::Rack::Debugger]  if options[:debugger]
+      Hash.new(middlewares)
+    end
+
 !SLIDE
     @@@ruby
     # ~/railtie/lib/rails/commands.rb
@@ -394,6 +416,30 @@
 
 !SLIDE smaller
     @@@ruby
+    initializer :set_clear_dependencies_hook do
+      unless config.cache_classes
+        ActionDispatch::Callbacks.after do
+          ActiveSupport::DescendantsTracker.clear
+          ActiveSupport::Dependencies.clear
+        end
+      end
+    end
+
+!SLIDE smaller
+    @@@ruby
+    initializer :initialize_dependency_mechanism do
+      ActiveSupport::Dependencies.mechanism = config.cache_classes ? :require : :load
+    end
+
+!SLIDE smaller
+## before_initialize hook is called after bootstrapping is done##
+    @@@ruby
+    initializer :bootstrap_hook do |app|
+      ActiveSupport.run_load_hooks(:before_initialize, app)
+    end
+
+!SLIDE smaller
+    @@@ruby
     #~/rails/application/finisher.rb
     module Finisher
 
@@ -520,4 +566,23 @@
     initializer :finisher_hook do
       ActiveSupport.run_load_hooks(:after_initialize, self)
     end
+
+
+run_load_hooks
+
+>> for ss
+before_configuration
+before_initialize
+after_initialize
+
+>> when first request is made to server
+action_controller
+action_view
+active_record
+
+>> when sc
+before_configuration
+before_initialize
+after_initialize
+active_record
 

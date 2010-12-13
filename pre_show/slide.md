@@ -9,6 +9,9 @@
     #~/views/users.index.html.erb
     <% auto_link('www.google.com) %>
 
+!SLIDE
+##In development mode all the changes appear instantly. How does that happen ?##
+
 
 !SLIDE
 
